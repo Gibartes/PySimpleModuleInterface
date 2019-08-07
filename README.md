@@ -8,7 +8,7 @@ Installation :
 # ModuleComoponentInterface
 [ ModuleComponentInterface Class ]
 
-## Interface Design
+## Interface implementation
 ModuleComponentInterface는 추상 클래스로 하위 클래스에서 몇 가지 method를 구현해야 합니다.
 1. module_open(id)
 - 모듈 객체를 열 때 처리해야할 과정을 호출합니다.
