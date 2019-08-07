@@ -49,5 +49,5 @@ ModuleComponentInterface에 맞춘 규격의
 - 모듈 테이블을 사전 형식으로 복사됩니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
 10. checkObjectLoaded(class)
 - 객체 테이블에 class가 등록되었는지 확인합니다. 결과에 대한 bool 값이 리턴됩니다.
-11. getLoadedObjectList(class)
+11. getLoadedObjectList()
 - 객체 테이블을 사전 형식으로 복사됩니다. 리턴된 객체를 수정해도 반영되지 않습니다. 
