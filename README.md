@@ -14,7 +14,7 @@ ModuleComponentInterface에 맞춘 규격의
 1. init()
 - Actuator 클래스의 초기화 작업을 수행합니다. 모듈 테이블과 객체 테이블이 모두 비워집니다.
 2. clear()
-- Actuator 클래스의 모든 테이블 내의 객체를 삭제하고 테이블을 비웁니다.
+- Actuator 클래스의 모듈 테이블과 객체 테이블 내의 객체들을 메모리에서 삭제하고 테이블을 비웁니다.
 
 ## Methods - Executor
 1. open(object,id,value)
