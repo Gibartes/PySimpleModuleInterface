@@ -47,10 +47,10 @@ class ModuleComponentInterface(metaclass=ABCMeta):
         pass
     @abstractmethod
     def set_attrib(self,key,value):         # 모듈 호출자가 모듈 속성 변경/추가하는 method interface
-        pass
+        self.update_attrib(key,value)
     @abstractmethod
     def get_attrib(self,key,value=None):    # 모듈 호출자가 모듈 속성 획득하는 method interface
-        pass
+        return self.attrib.get(key)
     @abstractmethod
     def execute(self,cmd=None,option=None): # 모듈 호출자가 모듈을 실행하는 method
         pass

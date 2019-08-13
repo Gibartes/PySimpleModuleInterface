@@ -103,9 +103,18 @@ class Actuator(object):
     def getModuleHandle(self,module):
         return self.__importTbl.get(module,None)
 
-    # Load/Unload a module
-    def loadObject(self,name,module):
-        self.__objectTbl.update({name:module})
+    # Load/unload a class
+    def loadObject(self,name,obj,force=False):
+        if(force==True):
+            self.unloadObject(name)
+            self.__objectTbl.update({name:obj})
+            return True
+        if(self.__objectTbl.get(name,None)==None):
+            self.__objectTbl.update({name:obj})
+            return True
+        try:del(obj)
+        except:pass
+        return False
 
     def unloadObject(self,name):
         tmp = self.__objectTbl.pop(name,None)
@@ -120,13 +129,13 @@ class Actuator(object):
         return (True if module in self.__importTbl.keys() else False)
 
     def getLoadedModuleList(self):
-        return self.__importTbl.copy()
+        return self.__importTbl.copy().keys()
 
     def checkObjectLoaded(self,name):
         return (True if name in self.__objectTbl.keys() else False)
 
     def getLoadedObjectList(self):
-        return self.__objectTbl.copy()
+        return self.__objectTbl.copy().keys()
 
     # load("module_name","class_name")
     def load(self,module,clss):
@@ -136,20 +145,21 @@ class Actuator(object):
         try:
             ClassObject = getattr(self.getModuleHandle(module),clss)
             Object      = ClassObject()
-            self.loadObject(module,Object)
-            return True
+            return self.loadObject(module,Object)
         except:
             return False
 
-    # loadClass("module_name","class_name")
-    def loadClass(self,module,clss):
+    # loadClass("module_name","class_name","class_name_alias")
+    def loadClass(self,module,clss,alias=None,force=False):
         if(self.checkModuleLoaded(module)==False):
             return False
         try:
             ClassObject = getattr(self.getModuleHandle(module),clss)
             Object      = ClassObject()
-            self.loadObject(module,Object)
-            return True
+            if(alias==None):
+                return self.loadObject(module,Object,force)
+            else:
+                return self.loadObject(alias,Object,force)
         except:
             return False
 
@@ -177,14 +187,14 @@ class Actuator(object):
             return False
         return self.unloadModule(module)
 
-    # loadModuleClassAs("module_name","class_name","namespace")
-    def loadModuleClassAs(self,module,cls,alias=None):
-        if(alias!=None):
-            self.loadLibraryAs(module,alias)
-            return self.loadClass(alias,cls)
+    # loadModuleClassAs("module_name","class_name","namespace","class_alias")
+    def loadModuleClassAs(self,module,cls,mod_alias=None,cls_alias=None,force=False):
+        if(mod_alias!=None):
+            self.loadLibraryAs(module,mod_alias)
+            return self.loadClass(mod_alias,cls,cls_alias,force)
         else:
             self.loadLibrary(module)
-            return self.loadClass(module,cls)
+            return self.loadClass(module,cls,cls_alias,force)
 
     # -------------------------------->
 
@@ -230,7 +240,7 @@ if __name__ == '__main__':
     if(_lib!=None and _cls!=None):
         mod.load(_lib,_cls)
 
-    if(_request not in mod.getLoadedObjectList().keys()):
+    if(_request not in mod.getLoadedObjectList()):
         print("[!] Unsupport type")
         sys.exit(0)
 
