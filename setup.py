@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name 		= 'moduleInterface',
-    version 	= '1.1.0',
+    version 	= '1.1.1',
     description	= 'Simple Python Module Interface',
     author		= 'gibartes',
     install_requires = [],
