@@ -71,7 +71,7 @@ class Actuator(object):
     def clear(self):
         keylist = self.__objectTbl.copy().keys()
         for k in keylist:
-            self.unloadObject(k)
+            self.__unloadObject(k)
 
         keylist = self.__importTbl.copy().keys()
         for k in keylist:
@@ -81,15 +81,19 @@ class Actuator(object):
     def loadModule(self,module):
         try:
             tmp = importlib.import_module(module)
-            self.__importTbl.update({module:tmp})
-            return tmp
+            if(self.__importTbl.get(name,None)==None):
+                self.__importTbl.update({module:tmp})
+                return tmp
+            return None
         except:return None
 
     def loadModuleAs(self,module,alias):
         try:
             tmp = importlib.import_module(module)
-            self.__importTbl.update({alias:tmp})
-            return tmp
+            if(self.__importTbl.get(alias,None)==None):
+                self.__importTbl.update({alias:tmp})
+                return tmp
+            return None
         except:return None
 
     def unloadModule(self,module):
@@ -106,7 +110,7 @@ class Actuator(object):
     # Load/unload a class
     def __loadObject(self,name,obj,force=False):
         if(force==True):
-            self.unloadObject(name)
+            self.__unloadObject(name)
             self.__objectTbl.update({name:obj})
             return True
         if(self.__objectTbl.get(name,None)==None):
@@ -116,7 +120,7 @@ class Actuator(object):
         except:pass
         return False
 
-    def unloadObject(self,name):
+    def __unloadObject(self,name):
         tmp = self.__objectTbl.pop(name,None)
         if(tmp!=None):
             try:del tmp
@@ -138,23 +142,23 @@ class Actuator(object):
         return self.__objectTbl.copy().keys()
 
     # load("module_name","class_name")
-    def load(self,module,clss):
+    def load(self,module,cls):
         if(self.checkModuleLoaded(module)==False):
             if(self.loadModule(module)==None):
                 return None
         try:
-            ClassObject = getattr(self.getModuleHandle(module),clss)
+            ClassObject = getattr(self.getModuleHandle(module),cls)
             Object      = ClassObject()
             return self.__loadObject(module,Object)
         except:
             return False
 
     # loadClass("module_name","class_name","class_name_alias")
-    def loadClass(self,module,clss,alias=None,force=False):
+    def loadClass(self,module,cls,alias=None,force=False):
         if(self.checkModuleLoaded(module)==False):
             return False
         try:
-            ClassObject = getattr(self.getModuleHandle(module),clss)
+            ClassObject = getattr(self.getModuleHandle(module),cls)
             Object      = ClassObject()
             if(alias==None):
                 return self.__loadObject(module,Object,force)
@@ -162,6 +166,10 @@ class Actuator(object):
                 return self.__loadObject(alias,Object,force)
         except:
             return False
+
+    # unloadClass("class_name_alias")
+    def unloadClass(self,name):
+        return self.__unloadObject(name)
 
     # loadLibrary("module_name")
     def loadLibrary(self,module):
