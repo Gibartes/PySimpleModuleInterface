@@ -104,7 +104,7 @@ class Actuator(object):
         return self.__importTbl.get(module,None)
 
     # Load/unload a class
-    def loadObject(self,name,obj,force=False):
+    def __loadObject(self,name,obj,force=False):
         if(force==True):
             self.unloadObject(name)
             self.__objectTbl.update({name:obj})
@@ -112,7 +112,7 @@ class Actuator(object):
         if(self.__objectTbl.get(name,None)==None):
             self.__objectTbl.update({name:obj})
             return True
-        try:del(obj)
+        try:del obj
         except:pass
         return False
 
@@ -145,7 +145,7 @@ class Actuator(object):
         try:
             ClassObject = getattr(self.getModuleHandle(module),clss)
             Object      = ClassObject()
-            return self.loadObject(module,Object)
+            return self.__loadObject(module,Object)
         except:
             return False
 
@@ -157,9 +157,9 @@ class Actuator(object):
             ClassObject = getattr(self.getModuleHandle(module),clss)
             Object      = ClassObject()
             if(alias==None):
-                return self.loadObject(module,Object,force)
+                return self.__loadObject(module,Object,force)
             else:
-                return self.loadObject(alias,Object,force)
+                return self.__loadObject(alias,Object,force)
         except:
             return False
 
