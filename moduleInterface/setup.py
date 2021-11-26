@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name 		= 'moduleInterface',
-    version 	= '2.0.0',
+    version 	= '2.1.3',
     description	= 'Python Module Interface With Normalized Dynamic Actuator',
     author		= 'gibartes',
     install_requires = [],
