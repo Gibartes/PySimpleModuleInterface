@@ -5,10 +5,11 @@ import os,sys
 import signal
 import argparse
 import importlib
+from multiprocessing import Process
 
 # Author : Gibartes
 
-class Actuator(interface.ModuleComponentInterface):
+class Actuator(object):
     def __init__(self):
         self.id = defines.ModuleID.ACTUATOR
         self.init()
@@ -33,6 +34,9 @@ class Actuator(interface.ModuleComponentInterface):
             return False
         self.errno = defines.FLAG.SUCCESS
         return obj.module_open(id,value)
+
+    def getObject(self,key):
+        return self.__objectTbl.get(key)
 
     def close(self,key,id,value):
         obj = self.__objectTbl.get(key)
@@ -69,7 +73,7 @@ class Actuator(interface.ModuleComponentInterface):
             return None
         if(mode==defines.FLAG.UNSAFELY_HANDLED):
             return obj.execute(cmd,option)
-        elif(mode==define.FLAG.SAFELY_HANDLED):
+        elif(mode==defines.FLAG.SAFELY_HANDLED):
             try:
                 result = obj.execute(cmd,option)
                 self.errno = defines.FLAG.SUCCESS
@@ -77,18 +81,37 @@ class Actuator(interface.ModuleComponentInterface):
             except:
                 self.errno = defines.FLAG.FAIL
                 return None
-    
+
+    def fork(self,key,cmd,option,mode=defines.FLAG.SAFELY_HANDLED):
+        obj = self.__objectTbl.get(key)
+        if(obj==None):
+            self.errno = defines.FLAG.NO_SUCH_OBJECT
+            return None
+        if(mode==defines.FLAG.UNSAFELY_HANDLED):
+            proc = Process(target=obj.execute,args=(cmd,option))
+            proc.start()
+            return True
+        elif(mode==defines.FLAG.SAFELY_HANDLED):
+            try:
+                proc = Process(target=obj.execute,args=(cmd,option))
+                proc.start()
+                self.errno = defines.FLAG.SUCCESS
+                return True
+            except:
+                self.errno = defines.FLAG.FAIL
+                return None
+
     # Wrapper functions
     def module_open(self,key,id,value):
         return self.open(key,id,value)
     def module_close(self,key,id,value):
         return self.close(key,id,value)
     def set_attrib(self,key,value):
-        return self.get(key,attr)
+        return self.get(key,value)
     def get_attrib(self,key,value=None):
-        return self.set(key,attr,value)
+        return self.set(key,key,value)
     def execute(self,key,cmd,option):
-        return call(key,cmd,option)
+        return self.call(key,cmd,option)
 
     # -------------------------------->
 
@@ -112,7 +135,7 @@ class Actuator(interface.ModuleComponentInterface):
     def loadModule(self,module):
         try:
             tmp = importlib.import_module(module)
-            if(self.__importTbl.get(name,None)==None):
+            if(self.__importTbl.get(module,None)==None):
                 self.__importTbl.update({module:tmp})
                 self.errno = defines.FLAG.SUCCESS
                 return tmp
@@ -133,15 +156,18 @@ class Actuator(interface.ModuleComponentInterface):
             return None
         except:
             self.errno = defines.FLAG.IS_NOT_REGULAR
-            return None
+            return None    
 
     def unloadModule(self,module):
         tmp = self.__importTbl.pop(module,None)
         if(tmp!=None):
-            try:del tmp
-            except:pass
+            try:
+                importlib.reload(tmp)
+                del tmp
+            except:
+                self.errno = defines.FLAG.NO_SUCH_OBJECT
             return
-        return tmp
+        self.errno = defines.FLAG.SUCCESS
 
     def getModuleHandle(self,module):
         return self.__importTbl.get(module,None)

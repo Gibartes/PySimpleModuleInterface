@@ -8,7 +8,7 @@ The default attribute of module :
     "base"   :0                     # File image base to carve
 
 """
-import os
+import os, copy
 
 # 정적 설정
 # 동적인 설정은 ModuleConfiguration을 이용하여 config.txt에 기록!
@@ -32,6 +32,18 @@ class ModuleConstant(object):
     EXCLUSIVE        = "excl"
     CLUSTER_SIZE     = "cluster"
     SECTOR_SIZE      = "sector"
+    RETURN_SET       = "save_result"
+    LAST_RETURN      = "result"
+    FLAGS            = "flag"
+    ARGUMENT         = "argument"
+    CLASS_NAME       = "@class"
+    CALL_SIGN        = "@callsign"
+    CUSTOM_ATTRIBUTE = "@custom"
+    FIRST_INPUT      = "@input"
+
+    INDEX            = "index"
+    FEATURE          = "features"
+    LABEL            = "label"
 
     # Management Control
     LOAD_MODULE      = "load_module"
@@ -53,14 +65,6 @@ class ModuleConstant(object):
     GETALL           = 0b00100000
     DESCRIPTION      = 0b01000000
 
-    # Page Type
-    FILE_HEADER      = 0b00000001
-    FILE_RECORD      = 0b00000010
-    FILE_ONESHOT     = 0b00000100
-    FILE_LOOSE       = 0b00000100
-    FILE_STRICT      = 0b01000000
-    INVALID          = 0b10000000
-
     # Error
     class Return(object):
         SUCCESS          = 0    # 성공
@@ -73,16 +77,16 @@ class ModuleConstant(object):
     class Dependency(object):
         pecarve          = "pecarve"
 
-    class FLAG(object):
-        SAFELY_HANDLED      = False
-        UNSAFELY_HANDLED    = True
-        SUCCESS             = 0
-        FAIL                = -1
-        IS_NOT_INSTANCE     = -2
-        ALREADY_LOADED      = -3
-        NO_SUCH_OBJECT      = -4
-        IS_NOT_REGULAR      = -5
-        NO_SUCH_MODULE      = -6
+class FLAG(object):
+    SAFELY_HANDLED      = False
+    UNSAFELY_HANDLED    = True
+    SUCCESS             = 0
+    FAIL                = -1
+    IS_NOT_INSTANCE     = -2
+    ALREADY_LOADED      = -3
+    NO_SUCH_OBJECT      = -4
+    IS_NOT_REGULAR      = -5
+    NO_SUCH_MODULE      = -6
 
 class ModuleID(object):
     UNALLOC          = 0x0000
@@ -90,40 +94,58 @@ class ModuleID(object):
     INIT             = 0X0002
     RESERVED         = 0xFFFF
 
-
 class Offset_Info(object):
+    NONE      = 0b00000000
     VALID     = 0b00000001
-    INVALID   = 0b00000010
-    ERROR     = 0b00000100
-    UNKNWON   = 0b00001000
-    MERGEABLE = 0b00010000
+    MERGEABLE = 0b00000010
+    FRAME     = 0b00000100
+    DECODING  = 0b00001000
+    UNIT      = 0b00010000
+    GROUPABLE = 0b00100000
+    EXTRACTED = 0b10000000
 
     def __init__(self):
-        self.name      = ""  # signature alias
-        self.signature = ""  # signatures in C_defy.SIGNATURE
-        self.flag      = False
-        self.clear()
+        self.name        = ""   # signature alias
+        self.signature   = ""   # signatures in C_defy.SIGNATURE
+        self.attribute   = None # static attribute which is not cleared.
+        self.__contents  = list()
+        self.__hcontents = dict()
+        self.size        = 0
+        self.flag        = None
+        self.__len       = 0
 
     def append(self,start,end,flag):
         self.__contents.append([start,end,flag])
-        self.__len    +=1
         self.size   += abs(end-start)
-        
+        self.__len+=1
+
+    def insert(self,*v):
+        self.__contents.append(list(v))
+
+    def update(self,key,value):
+        self.__hcontents.update({key:value})
+
     def clear(self):
-        self.__contents = list()
-        self.__len      = 0
-        self.size     = 0
-        self.flag     = True
+        self.__contents  = list()
+        self.__hcontents = dict()
+        self.size        = 0
+        self.flag        = None
+        self.__len         = 0
 
     def header(self):
-        if(self.__len>0):
+        if(len(self.__contents)>0):
             return tuple(self.__contents[0])
         return (-1,-1,-1)
 
     @property
     def len(self):
+        self.__len = len(self.__contents)
         return self.__len
 
     @property
     def contents(self):
         return self.__contents
+
+    @contents.setter
+    def contents(self,contents):
+        self.__contents = contents
